@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { startPixelEditor } from './editor/editor';
+import startPixelEditor from './editor/startPixelEditor';
 import logo from './logo.svg';
 import './App.css';
 
