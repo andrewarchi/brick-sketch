@@ -1,78 +1,87 @@
+import React from 'react';
+import PropTypes from 'prop-types';
 import Picture from './Picture';
-import { elt, drawPicture } from './shared';
+import { drawPicture } from './shared';
 
-export class ToolSelect {
-  constructor(state, { tools, dispatch }) {
-    this.select = elt('select',
-      { onchange: () => dispatch({ tool: this.select.value }) },
-      ...Object.keys(tools).map(name =>
-        elt('option', { selected: name === state.tool }, name)
-      )
+export class ToolSelect extends React.Component {
+  handleChange = event => this.props.dispatch({ tool: event.target.value });
+
+  render() {
+    return (
+      <label>
+        🖌 Tool:&nbsp;
+        <select value={this.props.tool} onChange={this.handleChange}>
+          {Object.keys(this.props.tools).map(name =>
+            <option selected={name === this.props.tool}>{name}</option>
+          )}
+        </select>
+      </label>
     );
-    this.dom = elt('label', null, '🖌 Tool: ', this.select);
-  }
-
-  syncState(state) {
-    this.select.value = state.tool;
   }
 }
 
-export class ColorSelect {
-  constructor(state, { dispatch }) {
-    this.input = elt('input', {
-      type: 'color',
-      value: state.color,
-      onchange: () => dispatch({ color: this.input.value })
-    });
-    this.dom = elt('label', null, '🎨 Color: ', this.input);
-  }
+ToolSelect.propTypes = {
+  tool: PropTypes.string.isRequired, // Redux
+  tools: PropTypes.objectOf(PropTypes.func).isRequired,
+  dispatch: PropTypes.func.isRequired
+};
 
-  syncState(state) {
-    this.input.value = state.color;
+export class ColorSelect extends React.Component {
+  handleChange = event => this.props.dispatch({ color: event.target.value });
+
+  render() {
+    return (
+      <label>
+        🎨 Color:&nbsp;
+        <input type="color" value={this.props.color} onChange={this.handleChange} />
+      </label>
+    );
   }
 }
 
-export class SaveButton {
-  constructor(state) {
-    this.picture = state.picture;
-    this.dom = elt('button', {
-      onclick: () => this.save()
-    }, '💾 Save');
-  }
+ColorSelect.propTypes = {
+  color: PropTypes.string.isRequired, // Redux
+  dispatch: PropTypes.func.isRequired
+};
 
+export class SaveButton extends React.Component {
   save() {
-    const canvas = elt('canvas');
-    drawPicture(this.picture, canvas, 1);
-    const link = elt('a', {
-      href: canvas.toDataURL(),
-      download: 'pixelart.png'
-    });
-    document.body.appendChild(link);
+    const canvas = document.createElement('canvas');
+    drawPicture(this.props.picture, canvas, 1);
+    const link = document.createElement('a');
+    link.href = canvas.toDataURL();
+    link.download = 'pixelart.png';
+    document.body.appendChild(link); // TODO: Unnecessary?
     link.click();
     link.remove();
   }
 
-  syncState(state) {
-    this.picture = state.picture;
+  render() {
+    return <button onClick={this.save}>💾 Save</button>;
   }
 }
 
-export class LoadButton {
-  constructor(_, { dispatch }) {
-    this.dom = elt('button', {
-      onclick: () => startLoad(dispatch)
-    }, '📁 Load');
-  }
+SaveButton.propTypes = {
+  picture: PropTypes.instanceOf(Picture).isRequired // Redux
+}
 
-  syncState() {}
+export class LoadButton extends React.Component {
+  handleChange = () => startLoad(this.props.dispatch);
+
+  render() {
+    return <button onClick={this.handleClick}>📁 Load</button>;
+  }
+}
+
+LoadButton.propTypes = {
+  dispatch: PropTypes.func.isRequired
 }
 
 function startLoad(dispatch) {
-  const input = elt('input', {
-    type: 'file',
-    onchange: () => finishLoad(input.files[0], dispatch)
-  });
-  document.body.appendChild(input);
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.onchange = () => finishLoad(input.files[0], dispatch);
+  document.body.appendChild(input); // TODO: Unnecessary?
   input.click();
   input.remove();
 }
@@ -81,12 +90,9 @@ function finishLoad(file, dispatch) {
   if (file == null) return;
   const reader = new FileReader();
   reader.addEventListener('load', () => {
-    const image = elt('img', {
-      onload: () => dispatch({
-        picture: pictureFromImage(image)
-      }),
-      src: reader.result
-    });
+    const image = document.createElement('img');
+    image.src = reader.result;
+    image.onload = () => dispatch({ picture: pictureFromImage(image) });
   });
   reader.readAsDataURL(file);
 }
@@ -94,7 +100,9 @@ function finishLoad(file, dispatch) {
 function pictureFromImage(image) {
   const width = Math.min(100, image.width);
   const height = Math.min(100, image.height);
-  const canvas = elt('canvas', { width, height });
+  const canvas = document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = height;
   const cx = canvas.getContext('2d');
   cx.drawImage(image, 0, 0);
   const pixels = [];
@@ -108,15 +116,15 @@ function pictureFromImage(image) {
   return new Picture(width, height, pixels);
 }
 
-export class UndoButton {
-  constructor(state, { dispatch }) {
-    this.dom = elt('button', {
-      onclick: () => dispatch({ undo: true }),
-      disabled: state.done.length === 0
-    }, '⮪ Undo');
-  }
+export class UndoButton extends React.Component {
+  handleClick = () => this.props.dispatch({ undo: true });
 
-  syncState(state) {
-    this.dom.disabled = state.done.length === 0;
+  render() {
+    return <button onClick={this.handleClick} disabled={this.props.done.length === 0}>⮪ Undo</button>
   }
+}
+
+UndoButton.propTypes = {
+  done: PropTypes.bool.isRequired, // Redux
+  dispatch: PropTypes.func.isRequired
 }

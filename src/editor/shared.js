@@ -1,19 +1,5 @@
 export const scale = 10;
 
-export function updateState(state, action) {
-  return { ...state, ...action };
-}
-
-export function elt(type, props, ...children) {
-  const dom = document.createElement(type);
-  if (props) Object.assign(dom, props);
-  for (const child of children) {
-    if (typeof child !== 'string') dom.appendChild(child);
-    else dom.appendChild(document.createTextNode(child));
-  }
-  return dom;
-}
-
 export function drawPicture(picture, canvas, scale) {
   canvas.width = picture.width * scale;
   canvas.height = picture.height * scale;

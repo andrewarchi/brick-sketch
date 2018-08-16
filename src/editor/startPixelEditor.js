@@ -1,5 +1,6 @@
 // https://eloquentjavascript.net/19_paint.html
 
+import React from 'react';
 import Picture from './Picture';
 import PixelEditor from './PixelEditor';
 import { draw, fill, rectangle, pick } from './tools';
@@ -41,13 +42,6 @@ function historyUpdateState(state, action) {
 }
 
 export default function startPixelEditor({ state = startState, tools = baseTools, controls = baseControls } = {}) {
-  const app = new PixelEditor(state, {
-    tools,
-    controls,
-    dispatch(action) {
-      state = historyUpdateState(state, action);
-      app.syncState(state);
-    }
-  });
-  return app.dom;
+  const dispatch = action => state = historyUpdateState(state, action);
+  return <PixelEditor tools={tools} controls={controls} dispatch={dispatch} />;
 }
