@@ -8,23 +8,18 @@ import registerServiceWorker from './registerServiceWorker';
 ReactDOM.render(
   <React.Fragment>
     <App />
-    <div id="editor"></div>
+    <PixelEditor
+      tool="draw"
+      color="#000000"
+      picture={Picture.empty(60, 30, '#f0f0f0')}
+      tools={{ draw, fill, rectangle, pick }}
+      controls={[ToolSelect, ColorSelect]}
+      dispatch={action => {
+        //state = updateState(state, action);
+        //app.syncState(state);
+      }}
+    />
   </React.Fragment>,
   document.getElementById('root')
 );
 registerServiceWorker();
-
-let state = {
-  tool: 'draw',
-  color: '#000000',
-  picture: Picture.empty(60, 30, '#f0f0f0')
-};
-const app = new PixelEditor(state, {
-  tools: { draw, fill, rectangle, pick },
-  controls: [ToolSelect, ColorSelect],
-  dispatch(action) {
-    state = updateState(state, action);
-    app.syncState(state);
-  }
-});
-document.getElementById('editor').appendChild(app.dom);

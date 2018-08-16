@@ -1,3 +1,6 @@
+import React from 'react';
+import PropTypes from 'prop-types';
+
 // https://eloquentjavascript.net/19_paint.html
 
 const scale = 10;
@@ -27,24 +30,19 @@ export class Picture {
   }
 }
 
-class PictureCanvas {
-  constructor(picture, pointerDown) {
-    this.dom = elt('canvas', {
-      onmousedown:  event => this.mouse(event, pointerDown),
-      ontouchstart: event => this.touch(event, pointerDown)
-    });
-    this.syncState(picture);
+class PictureCanvas extends React.Component {
+  componentDidMount() {
+    drawPicture(this.props.picture, this.canvas, scale);
   }
 
-  syncState(picture) {
-    if (this.picture === picture) return;
-    this.picture = picture;
-    drawPicture(this.picture, this.dom, scale);
+  onComponentWillReceiveProps({ picture }) {
+    if (this.props.picture === picture) return;
+    drawPicture(picture, this.canvas, scale);
   }
 
-  mouse = (downEvent, onDown) => {
+  mouse(downEvent, onDown) {
     if (downEvent.button !== 0) return;
-    let pos = pointerPosition(downEvent, this.dom);
+    let pos = pointerPosition(downEvent, this.canvas);
     const onMove = onDown(pos);
     if (!onMove) return;
     const handleMove = moveEvent => {
@@ -52,107 +50,143 @@ class PictureCanvas {
         this.dom.removeEventListener('mousemove', handleMove);
       }
       else {
-        const newPos = pointerPosition(moveEvent, this.dom);
+        const newPos = pointerPosition(moveEvent, this.canvas);
         if (newPos.x === pos.x && newPos.y === pos.y) return;
         pos = newPos;
         onMove(newPos);
       }
     };
-    this.dom.addEventListener('mousemove', handleMove);
+    this.canvas.addEventListener('mousemove', handleMove);
   };
 
-  touch = (startEvent, onDown) => {
-    let pos = pointerPosition(startEvent.touches[0], this.dom);
+  touch(startEvent, onDown) {
+    let pos = pointerPosition(startEvent.touches[0], this.canvas);
     const onMove = onDown(pos);
     startEvent.preventDefault();
     if (!onMove) return;
     const handleMove = moveEvent => {
-      const newPos = pointerPosition(moveEvent.touches[0], this.dom);
+      const newPos = pointerPosition(moveEvent.touches[0], this.canvas);
       if (newPos.x === pos.x && newPos.y === pos.y) return;
       pos = newPos;
       onMove(newPos);
     };
     const handleEnd = () => {
-      this.dom.removeEventListener('touchmove', handleMove);
-      this.dom.removeEventListener('touchend', handleEnd);
+      this.canvas.removeEventListener('touchmove', handleMove);
+      this.canvas.removeEventListener('touchend', handleEnd);
     };
-    this.dom.addEventListener('touchmove', handleMove);
-    this.dom.addEventListener('touchend', handleEnd);
+    this.canvas.addEventListener('touchmove', handleMove);
+    this.canvas.addEventListener('touchend', handleEnd);
   };
-}
 
-export class PixelEditor {
-  constructor(state, config) {
-    const { tools, controls, dispatch } = config;
-    this.state = state;
+  handleMouseDown = event => this.mouse(event, this.props.pointerDown);
+  handleTouchStart = event => this.touch(event, this.props.pointerDown);
 
-    this.canvas = new PictureCanvas(state.picture, pos => {
-      const tool = tools[this.state.tool];
-      const onMove = tool(pos, this.state, dispatch);
-      if (onMove) {
-        return pos => onMove(pos, this.state);
-      }
-    });
-    this.controls = controls.map(Control => new Control(state, config));
-    this.dom = elt('div', {},
-      this.canvas.dom,
-      elt('br'),
-      ...this.controls.reduce((acc, curr) => acc.concat(' ', curr.dom), [])
+  render() {
+    return (
+      <canvas
+        ref={canvas => this.canvas = canvas}
+        onMouseDown={this.handleMouseDown}
+        onTouchStart={this.handleTouchStart}
+      />
     );
   }
+}
 
-  syncState(state) {
-    this.state = state;
-    this.canvas.syncState(state.picture);
-    for (const ctrl of this.controls) {
-      ctrl.syncState(state);
+PictureCanvas.propTypes = {
+  picture: PropTypes.instanceOf(Picture),
+  pointerDown: PropTypes.func
+};
+
+export class PixelEditor extends React.Component {
+  pointerDown = pos => {
+    const tool = this.props.tools[this.props.tool];
+    const onMove = tool(pos, this.state, this.props.dispatch); // TODO: dispatch
+    if (onMove) {
+      return pos => onMove(pos, this.state);
     }
-  }
-}
+  };
 
-export class ToolSelect {
-  constructor(state, { tools, dispatch }) {
-    this.select = elt('select', { onchange: () => dispatch({tool: this.select.value}) },
-      ...Object.keys(tools).map(name =>
-        elt('option', { selected: name === state.tool }, name)
-      )
+  render() {
+    const { picture, tools, controls, dispatch } = this.props;
+    return (
+      <React.Fragment>
+        <PictureCanvas
+          picture={this.props.picture}
+          pointerDown={this.pointerDown}
+        />
+        <br />
+        {this.props.controls.map(Control =>
+          <Control
+            picture={picture}
+            tools={tools}
+            controls={controls}
+            dispatch={dispatch}
+          />
+        )}
+      </React.Fragment>
     );
-    this.dom = elt('label', null, '🖌 Tool: ', this.select);
-  }
-
-  syncState(state) {
-    this.select.value = state.tool;
   }
 }
 
-export class ColorSelect {
-  constructor(state, { dispatch }) {
-    this.input = elt('input', {
-      type: 'color',
-      value: state.color,
-      onchange: () => dispatch({ color: this.input.value })
-    });
-    this.dom = elt('label', null, '🎨 Color: ', this.input);
-  }
+PixelEditor.propTypes = {
+  picture: PropTypes.instanceOf(Picture),
+  tool: PropTypes.string,
+  tools: PropTypes.objectOf(PropTypes.func),
+  controls: PropTypes.arrayOf(PropTypes.element),
+  dispatch: PropTypes.func
+};
 
-  syncState(state) {
-    this.input.value = state.color;
+export class ToolSelect extends React.Component {
+  handleChange = event => this.props.dispatch({ tool: event.target.value });
+
+  render() {
+    const { tools, tool } = this.props;
+    return (
+      <label>
+        🖌 Tool:
+        <select
+          value={tool}
+          onChange={this.handleChange}
+        >
+          {Object.keys(tools).map(name =>
+            <option selected={name === tool}>{name}</option>
+          )}
+        </select>
+      </label>
+    );
   }
 }
+
+ToolSelect.propTypes = {
+  tools: PropTypes.objectOf(PropTypes.func),
+  tool: PropTypes.string,
+  dispatch: PropTypes.func
+};
+
+export class ColorSelect extends React.Component {
+  handleChange = event => this.props.dispatch({ color: event.target.value });
+
+  render() {
+    return (
+      <label>
+        🎨 Color:
+        <input
+          type="color"
+          value={this.props.color}
+          onChange={this.handleChange}
+        />
+      </label>
+    );
+  }
+}
+
+ColorSelect.propTypes = {
+  color: PropTypes.string,
+  dispatch: PropTypes.func
+};
 
 export function updateState(state, action) {
   return { ...state, ...action };
-}
-
-function elt(type, props, ...children) {
-  const dom = document.createElement(type);
-  if (props) {
-    Object.assign(dom, props);
-  }
-  for (const child of children) {
-    dom.appendChild(typeof child !== 'string' ? child : document.createTextNode(child));
-  }
-  return dom;
 }
 
 function drawPicture(picture, canvas, scale) {
