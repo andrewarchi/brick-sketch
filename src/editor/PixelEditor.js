@@ -169,7 +169,7 @@ export class ColorSelect extends React.Component {
   render() {
     return (
       <label>
-        🎨 Color:
+        🎨 Color:&nbsp;
         <input
           type="color"
           value={this.props.color}
