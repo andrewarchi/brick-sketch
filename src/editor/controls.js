@@ -100,9 +100,7 @@ function pictureFromImage(image) {
   const pixels = [];
   const { data } = cx.getImageData(0, 0, width, height);
 
-  function hex(n) {
-    return n.toString(16).padStart(2, '0');
-  }
+  const hex = n => n.toString(16).padStart(2, '0');
   for (let i = 0; i < data.length; i += 4) {
     const [r, g, b] = data.slice(i, i + 3);
     pixels.push('#' + hex(r) + hex(g) + hex(b));

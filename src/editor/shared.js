@@ -1,7 +1,7 @@
 export const scale = 10;
 
 export function updateState(state, action) {
-  return Object.assign({}, state, action);
+  return { ...state, ...action };
 }
 
 export function elt(type, props, ...children) {
