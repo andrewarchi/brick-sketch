@@ -1,9 +1,21 @@
-import React, { Component } from 'react';
-import startPixelEditor from './editor/startPixelEditor';
+import React from 'react';
+
+import PixelEditor from './editor/PixelEditor';
+import { draw, fill, rectangle, pick } from './editor/tools';
+import ToolSelect from './editor/ToolSelect';
+import ColorSelect from './editor/ColorSelect';
+import SaveButton from './editor/SaveButton';
+import LoadButton from './editor/LoadButton';
+import UndoButton from './editor/UndoButton';
 import logo from './logo.svg';
 import './App.css';
 
-class App extends Component {
+// https://eloquentjavascript.net/19_paint.html
+
+const tools = { draw, fill, rectangle, pick };
+const controls = [ToolSelect, ColorSelect, SaveButton, LoadButton, UndoButton];
+
+class App extends React.Component {
   render() {
     return (
       <div className="App">
@@ -15,7 +27,7 @@ class App extends Component {
           To get started, edit <code>src/App.js</code> and save to reload.
         </p>
         <div id="editor">
-          {startPixelEditor()}
+          <PixelEditor tools={tools} controls={controls} dispatch={() => {}}/>
         </div>
       </div>
     );
