@@ -23,9 +23,6 @@ class App extends React.Component {
           <img src={logo} className="App-logo" alt="logo" />
           <h1 className="App-title">Brick Sketch</h1>
         </header>
-        <p className="App-intro">
-          To get started, edit <code>src/App.js</code> and save to reload.
-        </p>
         <div id="editor">
           <PixelEditor tools={tools} controls={controls} dispatch={() => {}}/>
         </div>

@@ -4,47 +4,54 @@ import Picture from './Picture';
 import { scale, drawPicture, pointerPosition } from './shared';
 
 export default class PictureCanvas extends React.Component {
+  canvas = React.createRef();
+
+  componentDidMount() {
+    drawPicture(this.props.picture, this.canvas.current, scale);
+  }
+
   componentWillReceiveProps({ picture }) {
     if (this.props.picture !== picture) {
-      drawPicture(picture, this.canvas, scale);
+      drawPicture(picture, this.canvas.current, scale);
     }
   }
 
   mouse(downEvent, onDown) {
     if (downEvent.button !== 0) return;
-    let pos = pointerPosition(downEvent, this.canvas);
+    let pos = pointerPosition(downEvent, this.canvas.current);
     const onMove = onDown(pos);
     if (!onMove) return;
     const move = moveEvent => {
       if (moveEvent.buttons === 0) {
         this.dom.removeEventListener('mousemove', move);
-      } else {
-        const newPos = pointerPosition(moveEvent, this.canvas);
+      }
+      else {
+        const newPos = pointerPosition(moveEvent, this.canvas.current);
         if (newPos.x === pos.x && newPos.y === pos.y) return;
         pos = newPos;
         onMove(newPos);
       }
     };
-    this.canvas.addEventListener('mousemove', move);
+    this.canvas.current.addEventListener('mousemove', move);
   };
 
   touch(startEvent, onDown) {
-    let pos = pointerPosition(startEvent.touches[0], this.canvas);
+    let pos = pointerPosition(startEvent.touches[0], this.canvas.current);
     const onMove = onDown(pos);
     startEvent.preventDefault();
     if (!onMove) return;
     const move = moveEvent => {
-      const newPos = pointerPosition(moveEvent.touches[0], this.canvas);
+      const newPos = pointerPosition(moveEvent.touches[0], this.canvas.current);
       if (newPos.x === pos.x && newPos.y === pos.y) return;
       pos = newPos;
       onMove(newPos);
     };
     const end = () => {
-      this.canvas.removeEventListener('touchmove', move);
-      this.canvas.removeEventListener('touchend', end);
+      this.canvas.current.removeEventListener('touchmove', move);
+      this.canvas.current.removeEventListener('touchend', end);
     };
-    this.canvas.addEventListener('touchmove', move);
-    this.canvas.addEventListener('touchend', end);
+    this.canvas.current.addEventListener('touchmove', move);
+    this.canvas.current.addEventListener('touchend', end);
   };
 
   handleMouseDown = event => this.mouse(event, this.props.pointerDown);
@@ -52,7 +59,7 @@ export default class PictureCanvas extends React.Component {
 
   render() {
     return <canvas
-      ref={canvas => this.canvas = canvas}
+      ref={this.canvas}
       onMouseDown={this.handleMouseDown}
       onTouchStart={this.handleTouchStart}
     />;
