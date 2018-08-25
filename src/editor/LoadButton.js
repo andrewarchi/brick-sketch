@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import Picture from './Picture';
+import { setPicture } from './editorActions';
 
 export class LoadButton extends React.Component {
   handleChange = () => startLoad(this.props.dispatch);
@@ -29,7 +30,7 @@ function finishLoad(file, dispatch) {
   reader.addEventListener('load', () => {
     const image = document.createElement('img');
     image.src = reader.result;
-    image.onload = () => dispatch({ picture: pictureFromImage(image) });
+    image.onload = () => dispatch(setPicture(pictureFromImage(image)));
   });
   reader.readAsDataURL(file);
 }

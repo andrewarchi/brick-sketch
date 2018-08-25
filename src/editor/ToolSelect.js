@@ -1,9 +1,10 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
+import { setTool } from './editorActions';
 
 class ToolSelect extends React.Component {
-  handleChange = event => this.props.dispatch({ tool: event.target.value });
+  handleChange = event => this.props.dispatch(setTool(event.target.value));
 
   render() {
     return (

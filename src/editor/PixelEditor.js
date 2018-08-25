@@ -9,7 +9,9 @@ class PixelEditor extends React.Component {
   handlePointerDown = pos => {
     const tool = this.props.tools[this.props.tool];
     const onMove = tool(pos, this.props.picture, this.props.color, this.props.dispatch);
-    if (onMove) return pos => onMove(pos, this.props.picture, this.props.color);
+    if (onMove) {
+      return pos => onMove(pos, this.props.picture, this.props.color);
+    }
   };
 
   render() {

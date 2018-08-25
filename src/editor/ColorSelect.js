@@ -1,9 +1,10 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
+import { setColor } from './editorActions';
 
 export class ColorSelect extends React.Component {
-  handleChange = event => this.props.dispatch({ color: event.target.value });
+  handleChange = event => this.props.dispatch(setColor(event.target.value));
 
   render() {
     return (

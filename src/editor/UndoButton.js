@@ -3,9 +3,10 @@ import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 
 import Picture from './Picture';
+import { undo } from './editorActions';
 
 export class UndoButton extends React.Component {
-  handleClick = () => this.props.dispatch({ undo: true });
+  handleClick = () => this.props.dispatch(undo());
 
   render() {
     return <button onClick={this.handleClick} disabled={this.props.done.length === 0}>⮪ Undo</button>

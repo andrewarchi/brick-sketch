@@ -11,9 +11,9 @@ export default class PictureCanvas extends React.Component {
   }
 
   componentWillReceiveProps({ picture }) {
-    if (this.props.picture !== picture) {
+    //if (this.props.picture !== picture) {
       drawPicture(picture, this.canvas.current, scale);
-    }
+    //}
   }
 
   mouse(downEvent, onDown) {
@@ -23,7 +23,7 @@ export default class PictureCanvas extends React.Component {
     if (!onMove) return;
     const move = moveEvent => {
       if (moveEvent.buttons === 0) {
-        this.dom.removeEventListener('mousemove', move);
+        this.canvas.current.removeEventListener('mousemove', move);
       }
       else {
         const newPos = pointerPosition(moveEvent, this.canvas.current);
@@ -33,7 +33,7 @@ export default class PictureCanvas extends React.Component {
       }
     };
     this.canvas.current.addEventListener('mousemove', move);
-  };
+  }
 
   touch(startEvent, onDown) {
     let pos = pointerPosition(startEvent.touches[0], this.canvas.current);
@@ -52,7 +52,7 @@ export default class PictureCanvas extends React.Component {
     };
     this.canvas.current.addEventListener('touchmove', move);
     this.canvas.current.addEventListener('touchend', end);
-  };
+  }
 
   handleMouseDown = event => this.mouse(event, this.props.pointerDown);
   handleTouchStart = event => this.touch(event, this.props.pointerDown);

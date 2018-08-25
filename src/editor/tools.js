@@ -1,7 +1,9 @@
+import { setPicture, setColor } from './editorActions';
+
 export function draw(pos, picture, color, dispatch) {
   function drawPixel({ x, y }, picture, color) {
     const drawn = { x, y, color };
-    dispatch({ picture: picture.draw([drawn]) });
+    dispatch(setPicture(picture.draw([drawn])));
   }
   drawPixel(pos, picture, color);
   return drawPixel;
@@ -19,7 +21,7 @@ export function rectangle(start, picture, color, dispatch) {
         drawn.push({ x, y, color });
       }
     }
-    dispatch({ picture: picture.draw(drawn) });
+    dispatch(setPicture(picture.draw(drawn)));
   }
   drawRectangle(start);
   return drawRectangle;
@@ -47,9 +49,9 @@ export function fill({ x, y }, picture, color, dispatch) {
       }
     }
   }
-  dispatch({ picture: picture.draw(drawn) });
+  dispatch(setPicture(picture.draw(drawn)));
 }
 
 export function pick(pos, picture, color, dispatch) {
-  dispatch({ color: picture.pixel(pos.x, pos.y) });
+  dispatch(setColor(picture.pixel(pos.x, pos.y)));
 }

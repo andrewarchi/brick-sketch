@@ -1,3 +1,4 @@
+import * as e from './editorActions';
 import Picture from './Picture';
 
 const initialState = {
@@ -9,22 +10,32 @@ const initialState = {
 };
 
 export default function(state = initialState, action) {
-  if (action.undo === true) {
-    if (state.done.length === 0) return state;
-    return {
-      ...state,
-      picture: state.done[0],
-      done: state.done.slice(1),
-      doneAt: 0
-    };
+  switch (action.type) {
+    case e.SET_PICTURE:
+      if (state.doneAt < Date.now() - 1000) {
+        return {
+          ...state,
+          picture: action.meta.picture,
+          done: [state.picture, ...state.done],
+          doneAt: Date.now()
+        };
+      }
+      else {
+        return { ...state, picture: action.meta.picture };
+      }
+    case e.SET_COLOR:
+      return { ...state, color: action.meta.color };
+    case e.SET_TOOL:
+      return { ...state, tool: action.meta.tool };
+    case e.UNDO:
+      if (state.done.length === 0) return state;
+      return {
+        ...state,
+        picture: state.done[0],
+        done: state.done.slice(1),
+        doneAt: 0
+      };
+    default:
+      return state;
   }
-  else if (action.picture && state.doneAt < Date.now() - 1000) {
-    return {
-      ...state,
-      ...action,
-      done: [state.picture, ...state.done],
-      doneAt: Date.now()
-    };
-  }
-  return { ...state, ...action };
 }
